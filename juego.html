@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+        html {
+            background-color: black;
+        }
+
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            padding-top: 100px;
+        }
+
+        canvas {
+            background: rgb(29, 12, 126);
+            display: block;
+            margin: 0 auto;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 0px 50px 15px rgb(56, 12, 126)
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="myCanvas" width="480" height="320"></canvas>
+
+    <script>
+        // lienzo, direccion, ejes, direcciones de eje, radio de esfera
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        var x = canvas.width / 2;
+        var y = canvas.height - 30;
+        var dx = 2;
+        var dy = -2;
+        var ballRadius = 10;
+        // barra
+        var paddleHeight = 10;
+        var paddleWidth = 75;
+        var paddleX = (canvas.width - paddleWidth) / 2;
+        //botones de presion
+        var rightPressed = false;
+        var leftPressed = false;
+        // bloques
+        var brickRowCount = 3;
+        var brickColumnCount = 5;
+        var brickWidth = 75;
+        var brickHeight = 20;
+        var brickPadding = 10;
+        var brickOffsetTop = 30;
+        var brickOffsetLeft = 30;
+        //contador
+        var score = 0;
+        // vidas de jugador
+        var lives = 3;
+        //detener juego
+        var stop;
+
+
+        // matriz para contener las columnas de ladrillos y su aparicion/desaparicion
+        var bricks = [];
+        for (c = 0; c < brickColumnCount; c++) {
+            bricks[c] = [];
+            for (r = 0; r < brickRowCount; r++) {
+                bricks[c][r] = { x: 0, y: 0, status: 1 };
+            }
+        }
+
+        //funciones que reciben las señales de presionar boton
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+        document.addEventListener("mousemove", mouseMoveHandler, false);
+
+        //funcion para detectar el raton
+        function mouseMoveHandler(e) {
+            var relativeX = e.clientX - canvas.offsetLeft;
+            if (relativeX > 0 && relativeX < canvas.width) {
+                paddleX = relativeX - paddleWidth / 2;
+            }
+        }
+
+        //funciones para que la barra se mueva
+        function keyDownHandler(e) {
+            if (e.keyCode == 39) {
+                rightPressed = true;
+            } else if (e.keyCode == 37) {
+                leftPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.keyCode == 39) {
+                rightPressed = false;
+            } else if (e.keyCode == 37) {
+                leftPressed = false;
+            }
+        }
+
+
+
+        // funcion para detectar las colisiones entre la esfera y los ladrillos
+        function collisionDetection() {
+            for (c = 0; c < brickColumnCount; c++) {
+                for (r = 0; r < brickRowCount; r++) {
+                    var b = bricks[c][r];
+                    if (b.status == 1) {
+                        if (
+                            x > b.x &&
+                            x < b.x + brickWidth &&
+                            y > b.y &&
+                            y < b.y + brickHeight
+                        ) {
+                            dy = -dy;
+                            b.status = 0;
+                            score++;
+                            if (score == brickRowCount * brickColumnCount) {
+                                alert("YOU WIN, CONGRATULATIONS!");
+                                document.location.reload();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //funcion de vidas de jugador
+        function drawLives() {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "rgb(37, 134, 179)";
+            ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+        }
+
+        // funcion para el contador
+        function drawScore() {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "rgb(37, 134, 179)";
+            ctx.fillText("Score: " + score, 8, 20);
+        }
+
+        // funcion para definir la esfera
+        function drawBall() {
+
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "rgb(37, 134, 179)";
+            ctx.fill();
+            ctx.closePath();
+
+        }
+        // funcion que define la barra
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+            ctx.fillStyle = "rgb(37, 134, 179)";
+            ctx.fill();
+            ctx.closePath();
+        }
+        // funcion que define los ladrillos
+        function drawBricks() {
+            for (c = 0; c < brickColumnCount; c++) {
+                for (r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status == 1) {
+                        var brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+                        var brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                        ctx.fillStyle = "rgb(37, 134, 179)";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        function stop() {
+            this.paused = !this.paused;
+            document.getElementById('paused').innerHTML = (this.paused ? 'paused' : ' &nbsp; ');
+        }
+
+        // funcion para definir sus colisiones 
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPaddle();
+            drawScore();
+            drawLives();
+            collisionDetection();
+            drawBricks();
+            drawBall();
+
+            if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+                dx = -dx;
+            }
+            if (y + dy < ballRadius) {
+                dy = -dy;
+            } else if (y + dy > canvas.height - ballRadius) {
+                if (x > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy;
+                } else {
+                    lives--; //si colisiona con el borde inferior se resta una vida
+                    if (!lives) {
+                        alert("¡GAME OVER! better luck next time!");
+                        document.location.reload();
+                    } else {
+                        x = canvas.width / 2;
+                        y = canvas.height - 30;
+                        dx = 2;
+                        dy = -2;
+                        paddleX = (canvas.width - paddleWidth) / 2;
+                    }
+                }
+            }
+
+            x += dx;
+            y += dy;
+
+            if (rightPressed && paddleX < canvas.width - paddleWidth) {
+                paddleX += 7;
+            } else if (leftPressed && paddleX > 0) {
+                paddleX -= 7;
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+
+</html>
