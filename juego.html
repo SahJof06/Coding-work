@@ -38,8 +38,8 @@
         var ctx = canvas.getContext("2d");
         var x = canvas.width / 2;
         var y = canvas.height - 30;
-        var dx = 2;
-        var dy = -2;
+        var dx = 4;
+        var dy = -4;
         var ballRadius = 10;
         // barra
         var paddleHeight = 10;
@@ -60,8 +60,6 @@
         var score = 0;
         // vidas de jugador
         var lives = 3;
-        //detener juego
-        var stop;
 
 
         // matriz para contener las columnas de ladrillos y su aparicion/desaparicion
@@ -130,14 +128,14 @@
             }
         }
 
-        //funcion de vidas de jugador
+        //funcion para definir vidas de jugador
         function drawLives() {
             ctx.font = "16px Arial";
             ctx.fillStyle = "rgb(37, 134, 179)";
             ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
         }
 
-        // funcion para el contador
+        // funcion para definir el contador
         function drawScore() {
             ctx.font = "16px Arial";
             ctx.fillStyle = "rgb(37, 134, 179)";
@@ -212,8 +210,8 @@
                     } else {
                         x = canvas.width / 2;
                         y = canvas.height - 30;
-                        dx = 2;
-                        dy = -2;
+                        dx = 4;
+                        dy = -4;
                         paddleX = (canvas.width - paddleWidth) / 2;
                     }
                 }
